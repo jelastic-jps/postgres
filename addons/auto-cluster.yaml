@@ -1,0 +1,84 @@
+type: update
+id: postgres-master-slave-auto-cluster
+baseUrl: https://raw.githubusercontent.com/jelastic-jps/postgres/master
+logo: /images/postgres-70x70.png
+name: PostgreSQL Master-Slave Auto-Cluster
+
+targetNodes: none
+nodeGroupAlias:
+  ${settings.nodeGroup}: sqldb
+  
+onInstall: init
+
+onAfterScaleOut[sqldb]:
+  - getPswd
+  - forEach(event.response.nodes):
+      initSlave: 
+        id: ${@i.id}      
+        ip: ${@i.address}
+
+onBeforeScaleIn[sqldb]:
+  - forEach(event.response.nodes):
+      cmd[${nodes.sqldb.master.id}]: jcm removeReplicaHost ${@i.address}
+
+onAfterClone:
+  - script: delete MANIFEST.id; return {result:0, jps:MANIFEST};
+  - install: ${response.jps}
+    envName: ${event.response.env.envName}    
+    settings: 
+      nodeGroup: ${settings.nodeGroup}      
+      clone: true    
+
+onAfterMigrate:
+  init: 
+    update: true
+
+actions:
+  init:
+    #- env.control.AddContainerEnvVars[sqldb]:
+    #    vars: {"KEY_PASS":"${fn.password}"}
+    - if (${settings.clone:false} || ${this.update:false}):
+      - cmd[${nodes.sqldb.master.id}]: jcm removeAllReplicaHosts
+      - forEach(nodes.sqldb):
+          - if (${@i.id} != ${nodes.sqldb.master.id}): 
+            - cmd[${nodes.sqldb.master.id}]: |-
+                jcm addReplicaHost ${@i.address} &>> /var/log/run.log
+                sudo jem service reload
+            - cmd[${@i.id}]: |-
+                #jcm updateReplicaHost ${nodes.sqldb.master.address} &>> /var/log/run.log
+                jcm updatePrimaryConnInfo &>> /var/log/run.log
+                sudo jem service restart
+    - else: 
+      - getPswd
+      - forEach(nodes.sqldb):
+          if (${@i.id} != ${nodes.sqldb.master.id}): 
+            initSlave: 
+              id: ${@i.id}
+              ip: ${@i.address}
+    
+  getPswd:
+    - cmd[${nodes.sqldb.master.id}]: |-
+        jcm initMaster &>> /var/log/run.log
+        jcm getPswd
+    - setGlobals: 
+        pswd: ${response.out}    
+    
+  initSlave:
+    - cmd[${nodes.sqldb.master.id}]: |-
+        jcm addReplicaHost ${this.ip} &>> /var/log/run.log
+        sudo jem service reload
+    - cmd[${this.id}]: |-
+        jcm setPswd ${globals.pswd}
+        jcm initSlave ${nodes.sqldb.master.address} &>> /var/log/run.log
+  
+startPage: ${nodes.sqldb.master.url}
+success: |
+  **Admin Panel**: [${nodes.sqldb.master.url}](${nodes.sqldb.master.url})  
+  **User**: webadmin  
+  **Password**: ${globals.pswd}  
+
+  * [Database Replication with PostgreSQL](https://docs.jelastic.com/postgresql-database-replication/)
+  * [Remote Access to PostgreSQL](https://docs.jelastic.com/remote-access-postgres/)
+  * [Import and Export Dump to PostgreSQL](https://docs.jelastic.com/dump-postgres/)
+
+  

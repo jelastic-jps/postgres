@@ -1,0 +1,52 @@
+type: install
+id: postgres-master-slave
+baseUrl: https://raw.githubusercontent.com/jelastic-jps/postgres/master
+homepage: http://docs.jelastic.com/postgresql-database-replication
+logo: /images/postgres-70x70.png
+name: PostgreSQL Master-Slave Cluster
+description:
+  text: |
+    PostgreSQL Master-Slave Cluster for improving data availability with asynchronous replication. 
+    PostgreSQL is a powerful, open source object-relational database system with over 30 years of active development that has earned it a strong reputation for reliability, feature robustness, and performance.
+  short: PostgreSQL Master-Slave Cluster with asynchronous replication.
+
+categories:
+  - apps/clustered-dbs
+  - apps/clusters
+
+settings:
+  fields:
+    caption: Version
+    name: nodeType
+    type: list    
+    values: 
+      - value: postgres9
+        caption: PostgreSQL 9
+      - value: postgres10
+        caption: PostgreSQL 10
+      - value: postgres11
+        caption: PostgreSQL 11
+      - value: postgres12
+        caption: PostgreSQL 12
+    default: postgres12
+
+nodes:
+  cloudlets: 16
+  count: 2
+  scalingMode: STATELESS
+  nodeType: ${settings.nodeType}
+  password: ${fn.password}  
+  cluster: true
+  skipNodeEmails: true
+  
+startPage: ${nodes.sqldb.master.url}
+success: 
+  email: false
+  text: |
+    **Admin Panel**: [${nodes.sqldb.master.url}](${nodes.sqldb.master.url})  
+    **User**: webadmin  
+    **Password**: ${nodes.sqldb.password}  
+
+    * [Database Replication with PostgreSQL](https://docs.jelastic.com/postgresql-database-replication/)
+    * [Remote Access to PostgreSQL](https://docs.jelastic.com/remote-access-postgres/)
+    * [Import and Export Dump to PostgreSQL](https://docs.jelastic.com/dump-postgres/)

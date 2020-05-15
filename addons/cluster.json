@@ -1,0 +1,20 @@
+{
+    "jps": "https://raw.githubusercontent.com/jelastic-jps/postgres/master/addons/auto-cluster.yaml",
+    "defaultState": false,
+    "skipOnEnvInstall": true,
+    "nodeGroupData": {
+        "scalingMode": "STATELESS",
+        "skipNodeEmails": true,
+        "isRedeploySupport": true,
+        "isResetServicePassword": "NODEGROUP"
+    },
+    "validation": {
+        "minCount": 2,
+        "minCloudlets": 4,
+        "scalingMode": "STATELESS"
+    },
+    "recommended": {
+        "cloudlets": 32
+    },
+    "description": "<h3>Master-Slave with Extra Slaves</h3>Pre-configured PostgreSQL database cluster with master-slave replication. Additional nodes are automatically added into the cluster as slaves. <a href='https://jelastic.com/blog/postgresql-auto-clustering-cloud-hosting/'>Learn More</a><img width='217' height='168' src='https://raw.githubusercontent.com/jelastic/icons/master/postgres/jelastic/images/tip-cluster-ms.svg?sanitize=true'>"
+}

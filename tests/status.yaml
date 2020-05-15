@@ -1,0 +1,20 @@
+type: update
+id: postgres-master-slave-test
+name: PostreSQL Master-Slave Test
+homepage: https://www.postgresql.org/
+baseUrl: https://raw.githubusercontent.com/jelastic-jps/postgres/master
+logo: /images/postgres-70x70.png
+description: Test of Master-Slave cluster status
+
+onInstall:
+  - cmd[${nodes.sqldb.master.id}]: |-
+      psql -U webadmin -d postgres -c "select client_addr from pg_stat_replication" | grep row | cut -d' ' -f1 | cut -d'(' -f2
+  - script: |
+      var rows = ${response.out}, slaves = ${nodes.sqldb.length} - 1;
+      if (rows == slaves) {
+        return {result: 0} 
+      } else {
+        return {result: "error", message: "Number of replicas (" + rows + ") does not match the number of slave nodes (" + slaves + ")"}
+      }
+success:
+  text: PostreSQL Master-Slave is up and running. All slaves are healthy!
