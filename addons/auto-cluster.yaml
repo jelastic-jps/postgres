@@ -49,6 +49,7 @@ actions:
                 jcm updatePrimaryConnInfo &>> /var/log/run.log
                 sudo jem service restart
     - else: 
+      - setNodeDisplayName[${nodes.sqldb.master.id}]: Master
       - getPswd
       - forEach(nodes.sqldb):
           if (${@i.id} != ${nodes.sqldb.master.id}): 
@@ -64,6 +65,7 @@ actions:
         pswd: ${response.out}    
     
   initSlave:
+    - setNodeDisplayName[${this.id}]: Slave
     - cmd[${nodes.sqldb.master.id}]: |-
         jcm addReplicaHost ${this.ip} &>> /var/log/run.log
         sudo jem service reload
