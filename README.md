@@ -6,7 +6,9 @@ Basic ready-to-use PostgreSQL cluster, which implements asynchronous master-slav
 
 The presented PostgreSQL Replication solution is built upon Jelastic certified stack template for **PostgreSQL 9.5.5**. It operates two database containers (master and slave, one per role) and makes data from primary DB server to be asynchronously replicated to a standby one.
 
-![postgresql-replication-topology](images/postgresql-replication-topology.png)
+<p align="left">
+<img src="images/postgresql-replication-topology.svg" width="350">
+</p>
 
 Within the package, each database container receives the [vertical scaling](https://docs.jelastic.com/automatic-vertical-scaling) up to **24 dynamic cloudlets** (or 3 GiB of RAM and 9.6 GHz of CPU) that are provided dynamically based on the incoming load. Subsequently, you can change the resource allocation limit by following the above-linked guide.
 
