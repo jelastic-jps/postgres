@@ -1,4 +1,5 @@
 type: install
+version: 1.7
 id: postgres-master-slave
 baseUrl: https://raw.githubusercontent.com/jelastic-jps/postgres/master
 homepage: http://docs.jelastic.com/postgresql-database-replication
