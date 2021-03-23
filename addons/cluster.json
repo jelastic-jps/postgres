@@ -16,5 +16,5 @@
     "recommended": {
         "cloudlets": 32
     },
-    "description": "<h3>Master-Slave with Extra Slaves</h3>Pre-configured PostgreSQL database cluster with master-slave replication. Additional nodes are automatically added into the cluster as slaves. <a href='https://jelastic.com/blog/postgresql-auto-clustering-master-slave-replication/'>Learn More</a><img width='217' height='168' src='https://raw.githubusercontent.com/jelastic/icons/master/postgres/jelastic/images/tip-cluster-ms.svg?sanitize=true'>"
+    "description": "<h3>Master-Slave with Scalable Slaves</h3>Pre-configured PostgreSQL database cluster with master-slave replication. New nodes are automatically added into the cluster as slaves. <a href='https://jelastic.com/blog/postgresql-auto-clustering-master-slave-replication/'>Learn More</a><img width='217' height='168' src='https://raw.githubusercontent.com/jelastic/icons/master/postgres/jelastic/images/tip-cluster-ms.svg?sanitize=true'>"
 }
