@@ -1,10 +1,10 @@
 # PostgreSQL Database Replication
 
-Basic ready-to-use PostgreSQL cluster, which implements asynchronous master-slave data replication within a pair of preconfigured database containers.
+Basic ready-to-use PostgreSQL cluster, which implements asynchronous primary-secondary data replication within a pair of preconfigured database containers.
 
 ## Package Implementation Specifics
 
-The presented PostgreSQL Replication solution is built upon Jelastic certified stack template for **PostgreSQL 9.5.5**. It operates two database containers (master and slave, one per role) and makes data from primary DB server to be asynchronously replicated to a standby one.
+The presented PostgreSQL Replication solution is built upon Jelastic certified stack template for **PostgreSQL 9.5.5**. It operates two database containers (primary and secondary, one per role) and makes data from primary DB server to be asynchronously replicated to a standby one.
 
 <p align="left">
 <img src="images/postgresql-replication-topology.svg" width="350">

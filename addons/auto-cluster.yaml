@@ -2,7 +2,7 @@ type: update
 id: postgres-master-slave-auto-cluster
 baseUrl: https://raw.githubusercontent.com/jelastic-jps/postgres/master
 logo: /images/postgres-70x70.png
-name: PostgreSQL Master-Slave Auto-Cluster
+name: PostgreSQL Primary-Secondary Auto-Cluster
 
 targetNodes: none
 nodeGroupAlias:
@@ -49,7 +49,7 @@ actions:
                 jcm updatePrimaryConnInfo &>> /var/log/run.log
                 sudo jem service restart
     - else: 
-      - setNodeDisplayName[${nodes.sqldb.master.id}]: Master
+      - setNodeDisplayName[${nodes.sqldb.master.id}]: Primary
       - getPswd
       - forEach(nodes.sqldb):
           if (${@i.id} != ${nodes.sqldb.master.id}): 
@@ -65,7 +65,7 @@ actions:
         pswd: ${response.out}    
     
   initSlave:
-    - setNodeDisplayName[${this.id}]: Slave
+    - setNodeDisplayName[${this.id}]: Secondary
     - cmd[${nodes.sqldb.master.id}]: |-
         jcm addReplicaHost ${this.ip} &>> /var/log/run.log
         sudo jem service reload

@@ -1,10 +1,10 @@
 type: update
 id: postgres-master-slave-test
-name: PostreSQL Master-Slave Test
+name: PostreSQL Primary-Secondary Test
 homepage: https://www.postgresql.org/
 baseUrl: https://raw.githubusercontent.com/jelastic-jps/postgres/master
 logo: /images/postgres-70x70.png
-description: Test of Master-Slave cluster status
+description: Test of Primary-Secondary cluster status
 
 onInstall:
   - cmd[${nodes.sqldb.master.id}]: |-
@@ -14,7 +14,7 @@ onInstall:
       if (rows == slaves) {
         return {result: 0} 
       } else {
-        return {result: "error", message: "Number of replicas (" + rows + ") does not match the number of slave nodes (" + slaves + ")"}
+        return {result: "error", message: "Number of replicas (" + rows + ") does not match the number of secondary nodes (" + slaves + ")"}
       }
 success:
-  text: PostreSQL Master-Slave is up and running. All slaves are healthy!
+  text: PostreSQL Primary-Secondary is up and running. All secondaries are healthy!
