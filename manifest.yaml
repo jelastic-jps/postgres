@@ -32,7 +32,7 @@ settings:
     default: postgres12
 
 nodes:
-  cloudlets: 16
+  cloudlets: 32
   count: 2
   scalingMode: STATELESS
   nodeType: ${settings.nodeType}
