@@ -1,5 +1,5 @@
 {
-    "jps": "https://raw.githubusercontent.com/jelastic-jps/postgres/master/addons/auto-cluster.yaml",
+    "jps": "https://raw.githubusercontent.com/jelastic-jps/postgres/v2.0.0/addons/auto-cluster.yaml",
     "defaultState": false,
     "skipOnEnvInstall": true,
     "nodeGroupData": {
