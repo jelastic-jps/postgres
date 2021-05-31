@@ -12,14 +12,19 @@ onInstall: init
 
 onAfterScaleOut[sqldb]:
   - getPswd
+  - getNodes
   - forEach(event.response.nodes):
-      initSlave: 
-        id: ${@i.id}      
+      initSecondary:
+        id: ${@i.id}
         ip: ${@i.address}
+  - forEach(nodes.sqldb):
+     if (${@i.id} != ${nodes.sqldb.master.id}):
+       cmd[${@i.id}]: jcm updateHbaConf ${globals.nodes_address} ${@i.address}
 
-onBeforeScaleIn[sqldb]:
-  - forEach(event.response.nodes):
-      cmd[${nodes.sqldb.master.id}]: jcm removeReplicaHost ${@i.address}
+onAfterScaleIn[sqldb]:
+  - getNodes
+  - forEach(nodes.sqldb):
+     cmd[${@i.id}]: jcm updateHbaConf ${globals.nodes_address} ${@i.address}
 
 onAfterClone:
   - script: delete MANIFEST.id; return {result:0, jps:MANIFEST};
@@ -27,7 +32,13 @@ onAfterClone:
     envName: ${event.response.env.envName}    
     settings: 
       nodeGroup: ${settings.nodeGroup}      
-      clone: true    
+      clone: true
+
+onBeforeMigrate:
+  if (${env.status} != 1):
+    stopEvent:
+      type: warning
+      message: Migration of stopped PostgreSQL Primary-Secondary Auto-Cluster is not supported.
 
 onAfterMigrate:
   init: 
@@ -39,6 +50,7 @@ actions:
     #    vars: {"KEY_PASS":"${fn.password}"}
     - if (${settings.clone:false} || ${this.update:false}):
       - cmd[${nodes.sqldb.master.id}]: jcm removeAllReplicaHosts
+      - getNodes
       - forEach(nodes.sqldb):
           - if (${@i.id} != ${nodes.sqldb.master.id}): 
             - cmd[${nodes.sqldb.master.id}]: |-
@@ -47,32 +59,54 @@ actions:
             - cmd[${@i.id}]: |-
                 #jcm updateReplicaHost ${nodes.sqldb.master.address} &>> /var/log/run.log
                 jcm updatePrimaryConnInfo &>> /var/log/run.log
+                jcm updateHbaConf ${globals.nodes_address} ${@i.address}
                 sudo jem service restart
     - else: 
       - setNodeDisplayName[${nodes.sqldb.master.id}]: Primary
-      - getPswd
+      - initPrimary
+      - getNodes
       - forEach(nodes.sqldb):
-          if (${@i.id} != ${nodes.sqldb.master.id}): 
-            initSlave: 
+        - if (${@i.id} != ${nodes.sqldb.master.id}):
+          - initSecondary:
               id: ${@i.id}
               ip: ${@i.address}
-    
+          - cmd[${@i.id}]: |-
+             jcm updateHbaConf ${globals.nodes_address} ${@i.address}
+             sudo jem service reload
+
+  initPrimary:
+    - cmd[${nodes.sqldb.master.id}]: jcm initPrimary &>> /var/log/run.log
+    - getPswd
+
   getPswd:
-    - cmd[${nodes.sqldb.master.id}]: |-
-        jcm initMaster &>> /var/log/run.log
-        jcm getPswd
+    - cmd[${nodes.sqldb.master.id}]: jcm getPswd
     - setGlobals: 
-        pswd: ${response.out}    
-    
-  initSlave:
+        pswd: ${response.out}
+
+  initSecondary:
     - setNodeDisplayName[${this.id}]: Secondary
     - cmd[${nodes.sqldb.master.id}]: |-
         jcm addReplicaHost ${this.ip} &>> /var/log/run.log
         sudo jem service reload
     - cmd[${this.id}]: |-
         jcm setPswd ${globals.pswd}
-        jcm initSlave ${nodes.sqldb.master.address} &>> /var/log/run.log
-  
+        jcm initSecondary &>> /var/log/run.log
+
+  getNodes:
+      - script: |
+          var resp = jelastic.env.control.GetEnvInfo('${env.envName}', session);
+          if (resp.result != 0) return resp;
+          var nodes_address = [];
+          for (var l = 0, k = resp.nodes; l < k.length; l++) {
+            if (k[l].nodeGroup == 'sqldb') {
+              nodes_address.push(k[l].address);
+            }
+          }
+          return { result: 0, nodes_address: nodes_address.join(",") }
+      - setGlobals:
+          nodes_address: ${response.nodes_address}
+
+
 startPage: ${nodes.sqldb.master.url}
 success: |
   **Admin Panel**: [${nodes.sqldb.master.url}](${nodes.sqldb.master.url})  
