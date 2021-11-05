@@ -31,7 +31,9 @@ settings:
         caption: PostgreSQL 12
       - value: postgres13
         caption: PostgreSQL 13
-    default: postgres13
+      - value: postgres14
+        caption: PostgreSQL 14
+    default: postgres14
 
 nodes:
   cloudlets: 32
