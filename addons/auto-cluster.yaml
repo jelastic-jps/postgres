@@ -50,6 +50,7 @@ actions:
     #    vars: {"KEY_PASS":"${fn.password}"}
     - if (${settings.clone:false} || ${this.update:false}):
       - cmd[${nodes.sqldb.master.id}]: jcm removeAllReplicaHosts
+      - getPswd
       - getNodes
       - forEach(nodes.sqldb):
           - if (${@i.id} != ${nodes.sqldb.master.id}): 
