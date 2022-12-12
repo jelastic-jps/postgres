@@ -1,7 +1,7 @@
 type: install
 version: 1.7
 id: postgres-master-slave
-baseUrl: https://raw.githubusercontent.com/jelastic-jps/postgres/v2.0.0
+baseUrl: https://raw.githubusercontent.com/DmytroZubelevych/postgres/v2.0.0
 homepage: http://docs.jelastic.com/postgresql-database-replication
 logo: /images/postgres-70x70.png
 name: PostgreSQL Primary-Secondary Cluster
@@ -17,19 +17,25 @@ categories:
 
 settings:
   fields:
-    caption: Version
-    name: nodeType
-    type: list    
-    values: 
-      - value: postgres11
-        caption: PostgreSQL 11
-      - value: postgres12
-        caption: PostgreSQL 12
-      - value: postgres13
-        caption: PostgreSQL 13
-      - value: postgres14
-        caption: PostgreSQL 14
-    default: postgres14
+    - caption: Version
+      name: nodeType
+      type: list    
+      values: 
+        - value: postgres10
+          caption: PostgreSQL 10
+        - value: postgres11
+          caption: PostgreSQL 11
+        - value: postgres12
+          caption: PostgreSQL 12
+        - value: postgres13
+          caption: PostgreSQL 13
+        - value: postgres14
+          caption: PostgreSQL 14
+      default: postgres14
+    - type: toggle
+      caption: Pgpool-II enabled
+      name: is_pgpool2
+      value: true
 
 nodes:
   cloudlets: 32
@@ -37,17 +43,23 @@ nodes:
   scalingMode: STATELESS
   nodeType: ${settings.nodeType}
   password: ${fn.password}  
-  cluster: true
-  skipNodeEmails: true
-  
+  cluster:
+    is_pgpool2: ${settings.is_pgpool2}
+    
+onInstall:
+  - cmd[${nodes.sqldb.master.id}]: jcm getPswd
+  - setGlobals:
+      pswd: ${response.out}
+  - if ('${settings.is_pgpool2}' == 'true'):
+    - cmd[${nodes.pgpool.master.id}]: cat /var/lib/pgsql/.pcppass |awk -F ':' '{print $4}'
+    - setGlobals:
+        pgpoolPasswd: '${response.out}'
+        successPath: /text/success-pgpool.md?_r=${fn.random}
+  - else:
+    - setGlobals:
+        successPath: /text/success.md?_r=${fn.random}
+
 startPage: ${nodes.sqldb.master.url}
 success: 
   email: false
-  text: |
-    **Admin Panel**: [${nodes.sqldb.master.url}](${nodes.sqldb.master.url})  
-    **User**: webadmin  
-    **Password**: ${nodes.sqldb.password}  
-
-    * [Database Replication with PostgreSQL](https://docs.jelastic.com/postgresql-database-replication/)
-    * [Remote Access to PostgreSQL](https://docs.jelastic.com/remote-access-postgres/)
-    * [Import and Export Dump to PostgreSQL](https://docs.jelastic.com/dump-postgres/)
+  text: ${globals.successPath}
