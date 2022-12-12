@@ -1,6 +1,6 @@
 type: update
 id: postgres-master-slave-auto-cluster
-baseUrl: https://raw.githubusercontent.com/jelastic-jps/postgres/master
+baseUrl: https://raw.githubusercontent.com/DmytroZubelevych/postgres/v2.0.0
 logo: /images/postgres-70x70.png
 name: PostgreSQL Primary-Secondary Auto-Cluster
 
@@ -10,24 +10,96 @@ nodeGroupAlias:
   
 onInstall: init
 
-onAfterScaleOut[sqldb]:
-  - getPswd
-  - forEach(event.response.nodes):
-      initSlave: 
-        id: ${@i.id}      
-        ip: ${@i.address}
+globals: 
+  pgpoolintpass: ${settings.pgpoolintpass:[fn.password]}
+  postgresqlConf: '/var/lib/pgsql/data/postgresql.conf'
 
-onBeforeScaleIn[sqldb]:
+onAfterResetServicePassword[sqldb]:
+  - copyPcpassFile
+
+onAfterResetNodePassword[sqldb]:
+  - copyPcpassFile
+
+onAfterScaleOut[sqldb]:
+  - copyPcpassFile
+  - if ('${settings.is_pgpool2}' == 'true'):
+    - adjustConfigs4PgpoolUser
+  - getPswd
+  - getNodes
   - forEach(event.response.nodes):
-      cmd[${nodes.sqldb.master.id}]: jcm removeReplicaHost ${@i.address}
+      initSecondary:
+        id: ${@i.id}
+        ip: ${@i.address}
+  - forEach(nodes.sqldb):
+     if (${@i.id} != ${nodes.sqldb.master.id}):
+       cmd[${@i.id}]: jcm updateHbaConf ${globals.nodes_address} ${@i.address}
+  - if ('${settings.is_pgpool2}' == 'true'):
+    - forEach(event.response.nodes):
+      - addPgNodesToPgPool:
+          pgaddress: ${@i.address}
+    - forEach(pgpoolnode:nodes.pgpool):
+      - generateAndTransferSSHKeys:
+          id: ${@pgpoolnode.id}
+    - addToKnownHosts
+          
+onBeforeScaleIn[pgpool]:
+  - forEach(pgpoolnode:event.response.nodes):
+    - removeWatchdogConfig:
+        pgpoolAddress: ${@pgpoolnode.address}
+    - cmd[sqldb]: sed -ci -e '/${@pgpoolnode.address}/d' /var/lib/pgsql/data/pg_hba.conf;
+  - cmd[sqldb,pgpool]: jem service restart
+          
+onAfterScaleOut[pgpool]:
+  - preparePgpoolNodes
+  - cmd[${event.response.nodes.join(id,)}]: rm -f ~/.ssh/id_rsa ~/.ssh/id_rsa.pub
+  - forEach(pgpoolnode:event.response.nodes):
+     - generateAndTransferSSHKeys:
+         id: ${@pgpoolnode.id}  
+  - cmd[pgpool]: jcm enableWatchdog
+    user: root
+  - forEach(pgpoolnode:nodes.pgpool):
+    - cmd[sqldb]: grep -q '${@pgpoolnode.address}' /var/lib/pgsql/data/pg_hba.conf || sed -ci -e '1i host    all             pgpool          ${@pgpoolnode.address}/32         trust' /var/lib/pgsql/data/pg_hba.conf;
+    - getPgPoolNodesCount
+    - setPgpoolNodeId:
+        pgPoolNode: ${@pgpoolnode.id}
+    - addWatchdogConfig:
+        pgpoolAddress: ${@pgpoolnode.address}
+  - addToKnownHosts
+
+onAfterScaleIn[sqldb]:
+  - getNodes
+  - forEach(nodes.sqldb):
+     cmd[${@i.id}]: jcm updateHbaConf ${globals.nodes_address} ${@i.address}
+  - if ('${settings.is_pgpool2}' == 'true'):
+    - forEach(event.response.nodes):
+      - removePgNodesFromPgPool:
+          pgaddress: ${@i.address}
+
+onAfterScaleIn[pgpool]:
+  - if (nodes.pgpool.length == 1):
+    - cmd[pgpool]: jcm disableWatchdog
+    - removeWatchdogConfig:
+        pgpoolAddress: ${nodes.pgpool.master.address}
+    - cmd[pgpool]: |-
+        rm -f /etc/pgpool-II/pgpool_node_id
+        sed -ci -e 's/use_watchdog/#use_watchdog/' /etc/pgpool-II/pgpool.conf 
+        jem service restart
 
 onAfterClone:
   - script: delete MANIFEST.id; return {result:0, jps:MANIFEST};
   - install: ${response.jps}
     envName: ${event.response.env.envName}    
-    settings: 
-      nodeGroup: ${settings.nodeGroup}      
-      clone: true    
+    settings:
+      pgpoolintpass: ${settings.pgpoolintpass}
+      nodeGroup: ${settings.nodeGroup}    
+      is_pgpool2: ${settings.is_pgpool2}
+      clone: true
+
+onBeforeMigrate:
+  if (${env.status} != 1):
+    stopEvent:
+      type: warning
+      message: Migration of stopped PostgreSQL Primary-Secondary Auto-Cluster is not supported.
 
 onAfterMigrate:
   init: 
@@ -35,52 +107,165 @@ onAfterMigrate:
 
 actions:
   init:
-    #- env.control.AddContainerEnvVars[sqldb]:
-    #    vars: {"KEY_PASS":"${fn.password}"}
     - if (${settings.clone:false} || ${this.update:false}):
       - cmd[${nodes.sqldb.master.id}]: jcm removeAllReplicaHosts
+      - getPswd
+      - getNodes
       - forEach(nodes.sqldb):
           - if (${@i.id} != ${nodes.sqldb.master.id}): 
             - cmd[${nodes.sqldb.master.id}]: |-
                 jcm addReplicaHost ${@i.address} &>> /var/log/run.log
                 sudo jem service reload
             - cmd[${@i.id}]: |-
-                #jcm updateReplicaHost ${nodes.sqldb.master.address} &>> /var/log/run.log
-                jcm updatePrimaryConnInfo &>> /var/log/run.log
+                jcm updatePrimaryConnInfo &>>/var/log/run.log
+                jcm updateHbaConf ${globals.nodes_address} ${@i.address}
                 sudo jem service restart
+      - if ('${settings.is_pgpool2}' == 'true'):
+        - cmd[pgpool]: jcm cleanupNodesFromPgpool2Conf &>>/var/log/run.log
+          user: root
     - else: 
       - setNodeDisplayName[${nodes.sqldb.master.id}]: Primary
-      - getPswd
+      - initPrimary
+      - getNodes
       - forEach(nodes.sqldb):
-          if (${@i.id} != ${nodes.sqldb.master.id}): 
-            initSlave: 
+        - if (${@i.id} != ${nodes.sqldb.master.id}):
+          - initSecondary:
               id: ${@i.id}
               ip: ${@i.address}
-    
+          - cmd[${@i.id}]: |-
+             jcm updateHbaConf ${globals.nodes_address} ${@i.address}
+             sudo jem service reload
+    - copyPcpassFile
+    - if ('${settings.is_pgpool2}' == 'true'):
+      - adjustConfigs4PgpoolUser
+      - cmd[${nodes.sqldb.master.id}]: |-
+          psql -U webadmin -d postgres -c "CREATE USER pgpool REPLICATION LOGIN CONNECTION LIMIT -1 ENCRYPTED PASSWORD '${globals.pgpoolintpass}';"
+      - preparePgpoolNodes
+      - forEach(nodes.sqldb):
+        - addPgNodesToPgPool:
+            pgaddress: ${@i.address}
+      - forEach(pgpoolnode:nodes.pgpool):
+        - generateAndTransferSSHKeys:
+            id: ${@pgpoolnode.id}
+        - cmd[sqldb]: sed -ci -e '1i host    all             pgpool          ${@pgpoolnode.address}/32         trust' /var/lib/pgsql/data/pg_hba.conf;
+      - if (nodes.pgpool.length > 1):
+        - cmd[pgpool]: jcm enableWatchdog
+          user: root
+        - forEach(pgpoolnode:nodes.pgpool):
+          - getPgPoolNodesCount
+          - setPgpoolNodeId:
+              pgPoolNode: ${@pgpoolnode.id}
+          - addWatchdogConfig:
+              pgpoolAddress: ${@pgpoolnode.address}        
+      - cmd[sqldb]: jem service restart
+      - cmd[pgpool]: jem service restart
+      - cmd[${nodes.pgpool.master.id}]: cat /var/lib/pgsql/.pcppass |awk -F ':' '{print $4}'
+      - setGlobals:
+          pgpoolPasswd: '${response.out}'
+          successPath: /text/success-pgpool.md?_r=${fn.random}
+    - else:
+      - setGlobals:
+          successPath: /text/success.md?_r=${fn.random}
+
+  addToKnownHosts:
+    - forEach(pgnode:nodes.sqldb):
+    - cmd[pgpool]: |-
+        ssh-keygen -R ${@pgnode.address}
+        ssh-keyscan ${@pgnode.address} 2>&1 1>> ~/.ssh/known_hosts
+
+  copyPcpassFile:
+    - cmd[${nodes.sqldb.master.id}]: cat /var/lib/pgsql/.pgpass
+    - cmd[sqldb]: echo '${response.out}' > /var/lib/pgsql/.pgpass
+  
+  generateAndTransferSSHKeys:
+    - cmd[${this.id}]: |-
+        [ -f "/var/lib/pgsql/.ssh/id_rsa.pub" ] || ssh-keygen -q -t rsa -N '' <<< $'\ny'
+    - cmd[${this.id}]: |-
+        cat /var/lib/pgsql/.ssh/id_rsa.pub
+    - cmd[sqldb]: 
+        grep -q '${response.out}' /var/lib/pgsql/.ssh/authorized_keys || echo '${response.out}' >> /var/lib/pgsql/.ssh/authorized_keys
+
+  preparePgpoolNodes:
+    - cmd[pgpool]: |-
+        pg_md5 --md5auth --username=pgpool ${globals.pgpoolintpass}
+        chown -R postgres:postgres /etc/pgpool-II
+      user: root
+
+  adjustConfigs4PgpoolUser:
+    - cmd[sqldb]: |-
+        jem service stop;
+        source /etc/jelastic/metainf.conf;
+        if [ "$COMPUTE_TYPE_VERSION" -ge "14" ] ; then
+            sed -ci -e 's|#password_encryption.*|password_encryption = md5|' ${globals.postgresqlConf}
+        fi
+        if [ "$COMPUTE_TYPE_VERSION" -ge "13" ] ; then
+            echo 'wal_keep_size = 1024' >> ${globals.postgresqlConf}
+        else
+            echo "wal_keep_segments = 128" >> ${globals.postgresqlConf}
+        fi
+        grep -q "^wal_log_hints" ${globals.postgresqlConf} || echo 'wal_log_hints = on' >> ${globals.postgresqlConf};
+        jem service start;
+      user: root
+
+  initPrimary:
+    - cmd[${nodes.sqldb.master.id}]: jcm initPrimary &>> /var/log/run.log
+    - getPswd
+
   getPswd:
-    - cmd[${nodes.sqldb.master.id}]: |-
-        jcm initMaster &>> /var/log/run.log
-        jcm getPswd
+    - cmd[${nodes.sqldb.master.id}]: jcm getPswd
     - setGlobals: 
-        pswd: ${response.out}    
-    
-  initSlave:
+        pswd: ${response.out}
+
+  initSecondary:
     - setNodeDisplayName[${this.id}]: Secondary
     - cmd[${nodes.sqldb.master.id}]: |-
         jcm addReplicaHost ${this.ip} &>> /var/log/run.log
         sudo jem service reload
     - cmd[${this.id}]: |-
         jcm setPswd ${globals.pswd}
-        jcm initSlave ${nodes.sqldb.master.address} &>> /var/log/run.log
-  
+        jcm initSecondary &>> /var/log/run.log
+
+  getNodes:
+      - script: |
+          var resp = jelastic.env.control.GetEnvInfo('${env.envName}', session);
+          if (resp.result != 0) return resp;
+          var nodes_address = [];
+          for (var l = 0, k = resp.nodes; l < k.length; l++) {
+            if (k[l].nodeGroup == 'sqldb') {
+              nodes_address.push(k[l].address);
+            }
+          }
+          return { result: 0, nodes_address: nodes_address.join(",") }
+      - setGlobals:
+          nodes_address: ${response.nodes_address}
+
+  addPgNodesToPgPool:
+    - forEach(pgpoolnode:nodes.pgpool):
+      - cmd[${@pgpoolnode.id}]: jcm addPgNodeToPgpool2Conf ${this.pgaddress} &>>/var/log/run.log
+        
+  removePgNodesFromPgPool:
+    - forEach(pgpoolnode:nodes.pgpool):
+      - cmd[${@pgpoolnode.id}]: jcm removePgNodeFromPgpool2Conf ${this.pgaddress} &>>/var/log/run.log
+        user: root
+        
+  getPgPoolNodesCount:
+    - cmd[${nodes.pgpool.master.id}]: grep '^wd_port[0-9]*' /etc/pgpool-II/pgpool.conf|wc -l
+    - setGlobals:
+        pgPoolCount: ${response.out}
+        
+  setPgpoolNodeId:
+    - cmd[${this.pgPoolNode}]: let PGPOOLCOUNT='${globals.pgPoolCount}+1'; [ -f "/etc/pgpool-II/pgpool_node_id" ] || jcm setPgpoolNodeId $PGPOOLCOUNT
+      user: root
+      
+  addWatchdogConfig:
+    - cmd[pgpool]: let PGPOOLCOUNT='${globals.pgPoolCount}+1'; jcm addWatchdogConfig $PGPOOLCOUNT ${this.pgpoolAddress}
+      user: root
+        
+  removeWatchdogConfig:
+    - cmd[pgpool]: jcm removeWatchdogConfig ${this.pgpoolAddress}
+      user: root        
+        
 startPage: ${nodes.sqldb.master.url}
-success: |
-  **Admin Panel**: [${nodes.sqldb.master.url}](${nodes.sqldb.master.url})  
-  **User**: webadmin  
-  **Password**: ${globals.pswd}  
-
-  * [Database Replication with PostgreSQL](https://docs.jelastic.com/postgresql-database-replication/)
-  * [Remote Access to PostgreSQL](https://docs.jelastic.com/remote-access-postgres/)
-  * [Import and Export Dump to PostgreSQL](https://docs.jelastic.com/dump-postgres/)
-
-  
+success:
+  email: ${globals.successPath}
+  text: ${globals.successPath}
