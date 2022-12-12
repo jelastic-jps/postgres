@@ -1,20 +1,62 @@
 {
-    "jps": "https://raw.githubusercontent.com/jelastic-jps/postgres/v2.0.0/addons/auto-cluster.yaml",
-    "defaultState": false,
-    "skipOnEnvInstall": true,
-    "nodeGroupData": {
-        "scalingMode": "STATELESS",
-        "skipNodeEmails": true,
-        "isRedeploySupport": true,
-        "isResetServicePassword": "NODEGROUP"
+  "convertable": false,
+  "skipOnEnvInstall": true,
+  "jps": "https://raw.githubusercontent.com/jelastic-jps/postgres/v2.0.0/addons/auto-cluster.yaml",
+  "description": "<h3>Primary-Secondary with Scalable Secondaries</h3>Pre-configured PostgreSQL database cluster with primary-secondary replication. New LB and DB nodes are automatically added into the cluster upon scaling.<br><img width='300' height='233' src='https://raw.githubusercontent.com/DmytroZubelevych/postgres/v2.0.0/images/pgpool-postgres-single-region.svg?sanitize=true'>",
+  "defaultState": false,
+  "nodeGroupData": {
+    "scalingMode": "STATELESS",
+    "skipNodeEmails": true,
+    "isRedeploySupport": true,
+    "isResetServicePassword": "NODEGROUP"
+  },
+  "settings": {
+    "data": {
+      "is_pgpool2": false
     },
-    "validation": {
-        "minCount": 2,
-        "minCloudlets": 4,
-        "scalingMode": "STATELESS"
-    },
-    "recommended": {
-        "cloudlets": 32
-    },
-    "description": "<h3>Primary-Secondary with Scalable Secondaries</h3>Pre-configured PostgreSQL database cluster with primary-secondary replication. New nodes are automatically added into the cluster as secondaries. <a href='https://jelastic.com/blog/postgresql-auto-clustering-master-slave-replication/'>Learn More</a><img width='217' height='168' src='https://raw.githubusercontent.com/jelastic/icons/master/postgres/jelastic/images/tip-cluster-ms.svg?sanitize=true'>"
+    "fields": [
+      {
+        "type": "toggle",
+        "caption": "Pgpool-II",
+        "name": "is_pgpool2",
+        "value": false
+      }
+    ]
+  },
+  "validation": {
+    "minCount": 2,
+    "minCloudlets": 4,
+    "scalingMode": "STATELESS",
+    "rules": [
+      {
+        "is_pgpool2": {
+          "true": {
+            "setGlobals": {
+              "pgpool2Count": 1
+            }
+          }
+        }
+      }
+    ]
+  },
+  "requires": [
+    "pgpool2"
+  ],
+  "extraNodes": [
+    {
+      "nodeGroup": "pgpool",
+      "nodeType": "pgpool2",
+      "count": "${globals.pgpool2Count:0}",
+      "isClusterSupport": false,
+      "isDeploySupport": false,
+      "isClusterDependency": false,
+      "isResetServicePassword": "NODEGROUP",
+      "applyQuotas": true,
+      "validation": {
+        "minCount": 1,
+        "maxCount": 3,
+        "scalingMode": "STATEFUL"
+      }
+    }
+  ]
 }
