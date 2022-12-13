@@ -4,7 +4,7 @@ Basic ready-to-use PostgreSQL cluster, which implements asynchronous primary-sec
 
 ## Package Implementation Specifics
 
-The presented PostgreSQL Replication solution is built upon Virtuozzo Application Platform certified stack templates:
+The presented PostgreSQL Replication solution is based on Virtuozzo Application Platform(VAP) certified stack templates which built:
  - for **[PostgreSQL](https://www.postgresql.org/)** database
  - for **[Pgpool-II](https://www.pgpool.net/mediawiki/index.php/Main_Page)** load balancer
  
@@ -23,16 +23,22 @@ In order to get PostgreSQL Database Replication solution instantly deployed, cli
 
 [![Deploy](images/deploy-to-cloud.png)](https://jelastic.com/install-application/?manifest=https://raw.githubusercontent.com/jelastic-jps/postgres/v2.0.0/manifest.yaml)
 
-To install the package manually, log in to the Jelastic dashboard with your credentials and [import](https://www.virtuozzo.com/application-platform-docs/environment-import/) link to the [**_manifest.yaml_**](https://github.com/jelastic-jps/postgres/blob/master/manifest.yaml) file (alternatively, you can locate this package via [Jelastic Marketplace](https://www.virtuozzo.com/application-platform-docs/marketplace/), *Clusters* section)
+To install the package manually, log in to the Virtuozzo Application Platform dashboard with your credentials and [import](https://www.virtuozzo.com/application-platform-docs/environment-import/) link to the [**_manifest.yaml_**](https://github.com/jelastic-jps/postgres/blob/master/manifest.yaml) file (alternatively, you can locate this package via [VAP Marketplace](https://www.virtuozzo.com/application-platform-docs/marketplace/), *Clusters* section)
 
-![postgresql-replication-installation](images/postgresql-replication-installation.png)
+<p align="left">
+<img src="images/postgresql-replication-installation.png" width="550">
+</p>
+
 
 Within the opened installation window, choose the PostgreSQL database version among available ones, type *Environment* name and optional *Display Name* ([environment alias](https://www.virtuozzo.com/application-platform-docs/environment-aliases/). Also, select the preferable [*Region*](https://www.virtuozzo.com/application-platform-docs/environment-regions/) (if several ones are available) and click **Install**.
 If required you may disable Pgpool-II load balancer layer with respective toggle. 
 
-Wait a few minutes for Jelastic to prepare your environment and set up the required replication configurations. When finished, you’ll be shown the appropriate notification with data for PostgreSQL administration interface access. 
+Wait a few minutes for VAP to prepare your environment and set up the required replication configurations. When finished, you’ll be shown the appropriate notification with data for PostgreSQL administration interface access. 
 
-![postgresql-replication-success-message](images/postgresql-replication-success-message.png)
+<p align="left">
+<img src="images/postgresql-replication-success-message.png" width="400">
+</p>
+
 
 This information will be also duplicated to you via email.
 
@@ -42,7 +48,7 @@ In case of no Pgpool-II nodes were added to cluster topology, use Primary node t
 
 ### Cluster Management
 
-In VAP the PostgreSQL cluster components can be either managed via [CLI](https://www.virtuozzo.com/application-platform-docs/ssh-access/) or UI.
+In VAP the PostgreSQL cluster components can be managed either via [CLI](https://www.virtuozzo.com/application-platform-docs/ssh-access/) or UI.
 
 #### Database Management
 
@@ -68,7 +74,7 @@ Pgpool-II nodes can be also managed via user-friendly built-in Administration Pa
 
 Pgpool-II admin panel provides an ability to tune: 
  - load balancing and even at database level. It means that you can specify how the requests to every database should be processed and balanced
- - connnection pools
+ - connection pools
  - logging
  - replication
  - debugging
