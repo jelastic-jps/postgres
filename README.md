@@ -1,6 +1,6 @@
 # PostgreSQL Database Replication
 
-Basic ready-to-use PostgreSQL cluster, which implements asynchronous primary-secondary data replication within a pair of preconfigured database containers and load balancing.
+Basic ready-to-use PostgreSQL cluster, which implements asynchronous Primary-Secondary data replication within a pair of preconfigured database containers and load balancing.
 
 ## Package Implementation Specifics
 
@@ -8,7 +8,7 @@ The presented PostgreSQL Replication solution is based on Virtuozzo Application 
  - for **[PostgreSQL](https://www.postgresql.org/)** database
  - for **[Pgpool-II](https://www.pgpool.net/mediawiki/index.php/Main_Page)** load balancer
  
- By default, package operates two database containers (primary and secondary, one per role) and makes data from primary DB server to be asynchronously replicated to a standby one.
+ By default, package operates two database containers (Primary and Secondary, one per role) and makes data from Primary DB server to be asynchronously replicated to a standby one.
  In front of the cluster a scalable load balancer layer of Pgpool-II node can be added which provides load-balancing, monitoring and management of database cluster.
 
 <p align="left">
