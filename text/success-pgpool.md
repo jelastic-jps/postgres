@@ -2,9 +2,12 @@
 **User**: webadmin  
 **Password**: ${globals.pswd}  
 
-**You can connect to PostgreSQL cluster through the Pgpool-II leader node using the data below**:    
+**You can connect to PostgreSQL cluster through the Pgpool-II leader node**:    
 
 **Pgpool-II Leader Node**: node${nodes.pgpool.master.id}-${env.domain}:5432    
+**Credentials**: the same as for the PostgreSQL nodes
+
+**Use this credentials to manage the Pgpool-II nodes in PgpoolAdmin**:
 **PgpoolAdmin Url**: [${nodes.pgpool.master.url}](${nodes.pgpool.master.url})  
 **PgpoolAdmin User**: postgres  
 **PgpoolAdmin Password**: ${globals.pgpoolPasswd}   
