@@ -46,7 +46,9 @@ onBeforeScaleIn[pgpool]:
   - forEach(pgpoolnode:event.response.nodes):
     - removeWatchdogConfig:
         pgpoolAddress: ${@pgpoolnode.address}
-    - cmd[sqldb]: sed -ci -e '/${@pgpoolnode.address}/d' /var/lib/pgsql/data/pg_hba.conf;
+    - cmd[sqldb]: |-
+        sed -ci -e '/${@pgpoolnode.address}/d' /var/lib/pgsql/data/pg_hba.conf;
+        sed -ci -e '/postgres@node${@pgpoolnode.id}-/d' /var/lib/pgsql/.ssh/authorized_keys;
   - cmd[sqldb,pgpool]: jem service restart
           
 onAfterScaleOut[pgpool]:
