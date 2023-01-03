@@ -67,6 +67,7 @@ onAfterScaleOut[pgpool]:
     - addWatchdogConfig:
         pgpoolAddress: ${@pgpoolnode.address}
   - addToKnownHosts
+  - fixPgpassPermissions
 
 onAfterScaleIn[sqldb]:
   - getNodes
@@ -76,6 +77,7 @@ onAfterScaleIn[sqldb]:
     - forEach(event.response.nodes):
       - removePgNodesFromPgPool:
           pgaddress: ${@i.address}
+  - fixPgpassPermissions
 
 onAfterScaleIn[pgpool]:
   - if (nodes.pgpool.length == 1):
@@ -168,6 +170,7 @@ actions:
     - else:
       - setGlobals:
           successPath: /text/success.md?_r=${fn.random}
+    - fixPgpassPermissions
 
   addToKnownHosts:
     - forEach(pgnode:nodes.sqldb):
@@ -265,7 +268,11 @@ actions:
         
   removeWatchdogConfig:
     - cmd[pgpool]: jcm removeWatchdogConfig ${this.pgpoolAddress}
-      user: root        
+      user: root
+  
+  fixPgpassPermissions:
+    - cmd[sqldb]: chmod 600 /var/lib/pgsql/.pgpass
+      user: root
         
 startPage: ${nodes.sqldb.master.url}
 success:
