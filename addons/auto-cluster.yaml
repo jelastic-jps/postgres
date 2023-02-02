@@ -67,6 +67,7 @@ onAfterScaleOut[pgpool]:
     - addWatchdogConfig:
         pgpoolAddress: ${@pgpoolnode.address}
   - addToKnownHosts
+  - fixPgpassPermissions
 
 onAfterScaleIn[sqldb]:
   - getNodes
@@ -76,6 +77,7 @@ onAfterScaleIn[sqldb]:
     - forEach(event.response.nodes):
       - removePgNodesFromPgPool:
           pgaddress: ${@i.address}
+  - fixPgpassPermissions
 
 onAfterScaleIn[pgpool]:
   - if (nodes.pgpool.length == 1):
@@ -149,7 +151,7 @@ actions:
       - forEach(pgpoolnode:nodes.pgpool):
         - generateAndTransferSSHKeys:
             id: ${@pgpoolnode.id}
-        - cmd[sqldb]: sed -ci -e '1i host    all             pgpool          ${@pgpoolnode.address}/32         trust' /var/lib/pgsql/data/pg_hba.conf;
+        - cmd[sqldb]: sed -ci -e '1i host    all             pgpool          ${@pgpoolnode.address}/32        md5' /var/lib/pgsql/data/pg_hba.conf;
       - if (nodes.pgpool.length > 1):
         - cmd[pgpool]: jcm enableWatchdog
           user: root
@@ -168,6 +170,7 @@ actions:
     - else:
       - setGlobals:
           successPath: /text/success.md?_r=${fn.random}
+    - fixPgpassPermissions
 
   addToKnownHosts:
     - forEach(pgnode:nodes.sqldb):
@@ -189,7 +192,9 @@ actions:
 
   preparePgpoolNodes:
     - cmd[pgpool]: |-
-        pg_md5 --md5auth --username=pgpool ${globals.pgpoolintpass}
+        sed -ci -e "s/^sr_check_password.*/sr_check_password = '${globals.pgpoolintpass}'/" /etc/pgpool-II/pgpool.conf
+        sed -ci -e "s/^health_check_password.*/health_check_password = '${globals.pgpoolintpass}'/" /etc/pgpool-II/pgpool.conf
+        pg_enc -m -f /etc/pgpool-II/pgpool.conf -u pgpool ${globals.pgpoolintpass}
         chown -R postgres:postgres /etc/pgpool-II
       user: root
 
@@ -197,9 +202,6 @@ actions:
     - cmd[sqldb]: |-
         jem service stop;
         source /etc/jelastic/metainf.conf;
-        if [ "$COMPUTE_TYPE_VERSION" -ge "14" ] ; then
-            sed -ci -e 's|#password_encryption.*|password_encryption = md5|' ${globals.postgresqlConf}
-        fi
         if [ "$COMPUTE_TYPE_VERSION" -ge "13" ] ; then
             echo 'wal_keep_size = 1024' >> ${globals.postgresqlConf}
         else
@@ -265,7 +267,11 @@ actions:
         
   removeWatchdogConfig:
     - cmd[pgpool]: jcm removeWatchdogConfig ${this.pgpoolAddress}
-      user: root        
+      user: root
+  
+  fixPgpassPermissions:
+    - cmd[sqldb]: chmod 600 /var/lib/pgsql/.pgpass
+      user: root
         
 startPage: ${nodes.sqldb.master.url}
 success:
