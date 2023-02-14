@@ -33,7 +33,7 @@ settings:
           caption: PostgreSQL 14
         - value: postgres15
           caption: PostgreSQL 15
-      default: postgres14
+      default: postgres15
     - type: toggle
       caption: Pgpool-II enabled
       name: is_pgpool2
