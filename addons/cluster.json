@@ -49,6 +49,7 @@
       "count": "${globals.pgpool2Count:0}",
       "isClusterSupport": false,
       "isDeploySupport": false,
+      "skipNodeEmails": true,
       "isClusterDependency": false,
       "isResetServicePassword": "NODEGROUP",
       "applyQuotas": true,
