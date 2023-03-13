@@ -147,12 +147,12 @@ actions:
           - cmd[${@i.id}]: |-
              jcm updateHbaConf ${globals.nodes_address} ${@i.address}
              sudo jem service reload
+      - if ('${settings.is_pgpool2}' == 'true'):
+        - adjustConfigs4PgpoolUser
+        - cmd[${nodes.sqldb.master.id}]: psql -U webadmin -d postgres -c "CREATE USER pgpool REPLICATION LOGIN CONNECTION LIMIT -1 ENCRYPTED PASSWORD '${globals.pgpoolintpass}';"
+        - preparePgpoolNodes
     - copyPcpassFile
     - if ('${settings.is_pgpool2}' == 'true'):
-      - adjustConfigs4PgpoolUser
-      - cmd[${nodes.sqldb.master.id}]: |-
-          psql -U webadmin -d postgres -c "CREATE USER pgpool REPLICATION LOGIN CONNECTION LIMIT -1 ENCRYPTED PASSWORD '${globals.pgpoolintpass}';"
-      - preparePgpoolNodes
       - forEach(nodes.sqldb):
         - addPgNodesToPgPool:
             pgaddress: ${@i.address}
