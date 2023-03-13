@@ -13,14 +13,6 @@ onInstall: init
 globals: 
   pgpoolintpass: ${settings.pgpoolintpass:[fn.password]}
   postgresqlConf: '/var/lib/pgsql/data/postgresql.conf'
-  
-onAfterChangeTopology:
-  - if (!nodes.sqldb):
-    - script: delete MANIFEST.id;
-  
-onAfterScaleIn[sqldb]:
-  - if (!nodes.sqldb):
-    - script: delete MANIFEST.id;
 
 onAfterResetServicePassword[sqldb]:
   - copyPcpassFile
