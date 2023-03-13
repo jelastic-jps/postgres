@@ -98,7 +98,7 @@ onAfterScaleIn[pgpool]:
 
 onAfterClone:
   - script: delete MANIFEST.id; return {result:0, jps:MANIFEST};
-  - install: ${response.jps}
+  - install: ${baseUrl}/addons/auto-cluster.yaml
     envName: ${event.response.env.envName}    
     settings:
       pgpoolintpass: ${settings.pgpoolintpass}
