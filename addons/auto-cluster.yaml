@@ -14,6 +14,10 @@ globals:
   pgpoolintpass: ${settings.pgpoolintpass:[fn.password]}
   postgresqlConf: '/var/lib/pgsql/data/postgresql.conf'
   
+onAfterChangeTopology:
+  - if (${nodes.sqldb.length:0}):
+    - script: delete MANIFEST.id;
+  
 onAfterScaleIn[sqldb]:
   - if (${nodes.sqldb.length:0}):
     - script: delete MANIFEST.id;
