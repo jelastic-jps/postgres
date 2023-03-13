@@ -13,6 +13,13 @@ onInstall: init
 globals: 
   pgpoolintpass: ${settings.pgpoolintpass:[fn.password]}
   postgresqlConf: '/var/lib/pgsql/data/postgresql.conf'
+  
+onBeforeRemoveNode [sqldb]:
+  if (nodes.sqldb.length == 1):
+    install:
+      type: update
+      name: PostgreSQL Primary-Secondary Auto-Cluster
+      id: postgres-master-slave-auto-cluster
 
 onAfterResetServicePassword[sqldb]:
   - copyPcpassFile
