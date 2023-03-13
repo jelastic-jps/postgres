@@ -15,11 +15,11 @@ globals:
   postgresqlConf: '/var/lib/pgsql/data/postgresql.conf'
   
 onAfterChangeTopology:
-  - if (${nodes.sqldb.length:0}):
+  - if (nodes.sqldb.length == 0):
     - script: delete MANIFEST.id;
   
 onAfterScaleIn[sqldb]:
-  - if (${nodes.sqldb.length:0}):
+  - if (nodes.sqldb.length == 0):
     - script: delete MANIFEST.id;
 
 onAfterResetServicePassword[sqldb]:
