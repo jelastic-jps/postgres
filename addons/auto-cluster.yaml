@@ -98,13 +98,14 @@ onAfterScaleIn[pgpool]:
 
 onAfterClone:
   - script: delete MANIFEST.id; return {result:0, jps:MANIFEST};
-  - install: ${baseUrl}/addons/auto-cluster.yaml
-    envName: ${event.response.env.envName}    
-    settings:
-      pgpoolintpass: ${settings.pgpoolintpass}
-      nodeGroup: ${settings.nodeGroup}    
-      is_pgpool2: ${settings.is_pgpool2}
-      clone: true
+  - install:
+      jps: ${baseUrl}/addons/auto-cluster.yaml
+      envName: ${event.response.env.envName}    
+      settings:
+        pgpoolintpass: ${settings.pgpoolintpass}
+        nodeGroup: ${settings.nodeGroup}    
+        is_pgpool2: ${settings.is_pgpool2}
+        clone: true
 
 onBeforeMigrate:
   if (${env.status} != 1):
