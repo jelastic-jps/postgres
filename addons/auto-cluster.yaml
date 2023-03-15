@@ -48,6 +48,10 @@ onAfterScaleOut[sqldb]:
       - generateAndTransferSSHKeys:
           id: ${@pgpoolnode.id}
     - addToKnownHosts
+    - forEach(event.response.nodes):
+      - addAppNameToConinfo:
+          id: ${@i.id}
+          address: ${@i.address}
           
 onBeforeScaleIn[pgpool]:
   - forEach(pgpoolnode:event.response.nodes):
@@ -172,6 +176,10 @@ actions:
       - cmd[sqldb]: jem service restart
       - cmd[pgpool]: jem service restart
       - cmd[${nodes.pgpool.master.id}]: cat /var/lib/pgsql/.pcppass |awk -F ':' '{print $4}'
+      - forEach(nodes.sqldb):
+        - addAppNameToConinfo:
+            id: ${@i.id}
+            address: ${@i.address}
       - setGlobals:
           pgpoolPasswd: '${response.out}'
           successPath: /text/success-pgpool.md?_r=${fn.random}
@@ -279,6 +287,13 @@ actions:
   
   fixPgpassPermissions:
     - cmd[sqldb]: chmod 600 /var/lib/pgsql/.pgpass
+      user: root
+      
+  addAppNameToConinfo:
+    - cmd[${nodes.pgpool.master.id}]: grep '^backend_hostname' /etc/pgpool-II/pgpool.conf |grep ${this.address}|awk '{print $1}'|grep -o [[:digit:]].*
+    - setGlobals:
+        pgNodeNumber: ${response.out}
+    - cmd[${this.id}]: sed -ci -e "s/port=5432 user=replication'/port=5432 user=replication application_name=server${globals.pgNodeNumber}'/g" ${globals.postgresqlConf}
       user: root
         
 startPage: ${nodes.sqldb.master.url}
