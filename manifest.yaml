@@ -1,8 +1,8 @@
 type: install
 version: 1.7
 id: postgres-master-slave
-baseUrl: https://raw.githubusercontent.com/DmytroZubelevych/postgres/v2.0.0
-homepage: http://docs.jelastic.com/postgresql-database-replication
+baseUrl: https://raw.githubusercontent.com/jelastic-jps/postgres/v2.0.0
+homepage: https://www.virtuozzo.com/application-platform-docs/postgresql-database-replication/
 logo: /images/postgres-70x70.png
 name: PostgreSQL Primary-Secondary Cluster
 description:
