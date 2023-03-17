@@ -208,6 +208,8 @@ actions:
 
   preparePgpoolNodes:
     - cmd[pgpool]: |-
+        [ -f ~/.pgpoolkey ] || echo 'defaultpgpoolkey' > ~/.pgpoolkey; chmod 600 ~/.pgpoolkey
+    - cmd[pgpool]: |-
         sed -ci -e "s/^sr_check_password.*/sr_check_password = '${globals.pgpoolintpass}'/" /etc/pgpool-II/pgpool.conf
         sed -ci -e "s/^health_check_password.*/health_check_password = '${globals.pgpoolintpass}'/" /etc/pgpool-II/pgpool.conf
         pg_enc -m -f /etc/pgpool-II/pgpool.conf -u pgpool ${globals.pgpoolintpass}
