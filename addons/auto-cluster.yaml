@@ -153,7 +153,7 @@ actions:
              sudo jem service reload
       - if ('${settings.is_pgpool2}' == 'true'):
         - adjustConfigs4PgpoolUser
-        - cmd[${nodes.sqldb.master.id}]: psql -U webadmin -d postgres -c "CREATE USER pgpool REPLICATION LOGIN CONNECTION LIMIT -1 ENCRYPTED PASSWORD '${globals.pgpoolintpass}';"
+        - cmd[${nodes.sqldb.master.id}]: psql -U webadmin -d postgres -c "CREATE USER pgpool REPLICATION LOGIN CONNECTION LIMIT -1 ENCRYPTED PASSWORD '${globals.pgpoolintpass}' IN ROLE pg_monitor;"
         - preparePgpoolNodes
     - copyPcpassFile
     - if ('${settings.is_pgpool2}' == 'true'):
@@ -221,9 +221,9 @@ actions:
         jem service stop;
         source /etc/jelastic/metainf.conf;
         if [ "$COMPUTE_TYPE_VERSION" -ge "13" ] ; then
-            echo 'wal_keep_size = 1024' >> ${globals.postgresqlConf}
+            echo 'wal_keep_size = 2048' >> ${globals.postgresqlConf}
         else
-            echo "wal_keep_segments = 128" >> ${globals.postgresqlConf}
+            echo "wal_keep_segments = 256" >> ${globals.postgresqlConf}
         fi
         grep -q "^wal_log_hints" ${globals.postgresqlConf} || echo 'wal_log_hints = on' >> ${globals.postgresqlConf};
         jem service start;
