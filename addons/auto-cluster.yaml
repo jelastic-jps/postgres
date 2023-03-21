@@ -14,7 +14,7 @@ globals:
   pgpoolintpass: ${settings.pgpoolintpass:[fn.password]}
   postgresqlConf: '/var/lib/pgsql/data/postgresql.conf'
   
-onBeforeRemoveNode [sqldb]:
+onBeforeRemoveNode[sqldb]:
   if (nodes.sqldb.length == 1):
     install:
       type: update
