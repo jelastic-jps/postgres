@@ -175,11 +175,11 @@ actions:
               pgpoolAddress: ${@pgpoolnode.address}        
       - cmd[sqldb]: jem service restart
       - cmd[pgpool]: jem service restart
-      - cmd[${nodes.pgpool.master.id}]: cat /var/lib/pgsql/.pcppass |awk -F ':' '{print $4}'
       - forEach(nodes.sqldb):
         - addAppNameToConinfo:
             id: ${@i.id}
             address: ${@i.address}
+      - cmd[${nodes.pgpool.master.id}]: cat /var/lib/pgsql/.pcppass |awk -F ':' '{print $4}'
       - setGlobals:
           pgpoolPasswd: '${response.out}'
           successPath: /text/success-pgpool.md?_r=${fn.random}
