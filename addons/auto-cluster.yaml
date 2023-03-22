@@ -307,6 +307,7 @@ actions:
             sed -ci -e 's/^max_wal_senders.*/max_wal_senders = ${nodes.sqldb.length}/' ${globals.postgresqlConf}
             jem service restart
         fi
+      user: root
         
 startPage: ${nodes.sqldb.master.url}
 success:
