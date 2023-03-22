@@ -28,12 +28,7 @@ onAfterResetNodePassword[sqldb]:
   - copyPcpassFile
 
 onAfterScaleOut[sqldb]:
-  - cmd[${nodes.sqldb.master.id}]: |-
-      MAX_WAL_SENDERS=$(grep 'max_wal_senders' ${globals.postgresqlConf}|grep -o [0-9]*)
-      if [ "${nodes.sqldb.length}" -ge "${MAX_WAL_SENDERS}" ] ; then
-          sed -ci -e 's/^max_wal_senders.*/max_wal_senders = ${nodes.sqldb.length}/' ${globals.postgresqlConf}
-          jem service restart
-      fi
+  - setMaxWalSenders
   - copyPcpassFile
   - if ('${settings.is_pgpool2}' == 'true'):
     - adjustConfigs4PgpoolUser
@@ -129,6 +124,7 @@ onAfterMigrate:
 
 actions:
   init:
+    - setMaxWalSenders
     - if (${settings.clone:false} || ${this.update:false}):
       - cmd[${nodes.sqldb.master.id}]: jcm removeAllReplicaHosts
       - getPswd
@@ -303,6 +299,14 @@ actions:
         pgNodeNumber: ${response.out}
     - cmd[${this.id}]: sed -ci -e "s/port=5432 user=replication'/port=5432 user=replication application_name=server${globals.pgNodeNumber}'/g" ${globals.postgresqlConf}
       user: root
+      
+  setMaxWalSenders:
+    - cmd[${nodes.sqldb.master.id}]: |-
+      MAX_WAL_SENDERS=$(grep 'max_wal_senders' ${globals.postgresqlConf}|grep -o [0-9]*)
+      if [ "${nodes.sqldb.length}" -ge "${MAX_WAL_SENDERS}" ] ; then
+          sed -ci -e 's/^max_wal_senders.*/max_wal_senders = ${nodes.sqldb.length}/' ${globals.postgresqlConf}
+          jem service restart
+      fi
         
 startPage: ${nodes.sqldb.master.url}
 success:
