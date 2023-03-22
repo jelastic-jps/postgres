@@ -28,6 +28,9 @@ onAfterResetNodePassword[sqldb]:
   - copyPcpassFile
 
 onAfterScaleOut[sqldb]:
+  - cmd[${nodes.sqldb.master.id}]: grep 'max_wal_senders' /var/lib/pgsql/data/postgresql.conf|grep -o [0-9]*
+  - setGlobals:
+      maxWalSenders: '${response.out}'
   - copyPcpassFile
   - if ('${settings.is_pgpool2}' == 'true'):
     - adjustConfigs4PgpoolUser
