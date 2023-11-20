@@ -174,9 +174,9 @@ actions:
 
   addToKnownHosts:
     - forEach(pgnode:nodes.sqldb):
-    - cmd[pgpool]: |-
-        ssh-keygen -R ${@pgnode.address}
-        ssh-keyscan ${@pgnode.address} 2>&1 1>> ~/.ssh/known_hosts
+      - cmd[pgpool]: |-
+          ssh-keygen -R ${@pgnode.address}
+          ssh-keyscan ${@pgnode.address} 2>&1 1>> ~/.ssh/known_hosts
 
   copyPcpassFile:
     - cmd[${nodes.sqldb.master.id}]: cat /var/lib/pgsql/.pgpass
