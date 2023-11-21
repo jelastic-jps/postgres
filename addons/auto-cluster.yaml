@@ -89,6 +89,8 @@ onAfterScaleIn[sqldb]:
     - forEach(event.response.nodes):
       - removePgNodesFromPgPool:
           pgaddress: ${@i.address}
+      - cmd[pgpool]: |-
+          sed -ci -e '/^${@i.address}/d'  ~/.ssh/known_hosts
   - fixPgpassPermissions
 
 onAfterScaleIn[pgpool]:
