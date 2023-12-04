@@ -61,6 +61,8 @@ onBeforeScaleIn[pgpool]:
     - cmd[sqldb]: |-
         sed -ci -e '/${@pgpoolnode.address}/d' /var/lib/pgsql/data/pg_hba.conf;
         sed -ci -e '/postgres@node${@pgpoolnode.id}-/d' /var/lib/pgsql/.ssh/authorized_keys;
+        systemctl reset-failed pgpool-II.service
+      user: root  
   - cmd[sqldb,pgpool]: jem service restart
           
 onAfterScaleOut[pgpool]:
@@ -141,7 +143,9 @@ actions:
                 jcm updateHbaConf ${globals.nodes_address} ${@i.address}
                 sudo jem service restart
       - if ('${settings.is_pgpool2}' == 'true'):
-        - cmd[pgpool]: jcm cleanupNodesFromPgpool2Conf &>>/var/log/run.log
+        - cmd[pgpool]: |-
+            jcm cleanupNodesFromPgpool2Conf &>>/var/log/run.log
+            systemctl reset-failed pgpool-II.service
           user: root
     - else: 
       - setNodeDisplayName[${nodes.sqldb.master.id}]: Primary
@@ -169,7 +173,9 @@ actions:
             id: ${@pgpoolnode.id}
         - cmd[sqldb]: sed -ci -e '1i host    all             pgpool          ${@pgpoolnode.address}/32        md5' /var/lib/pgsql/data/pg_hba.conf;
       - if (nodes.pgpool.length > 1):
-        - cmd[pgpool]: jcm enableWatchdog
+        - cmd[pgpool]: |-
+            jcm enableWatchdog;
+            systemctl reset-failed pgpool-II.service;
           user: root
         - forEach(pgpoolnode:nodes.pgpool):
           - getPgPoolNodesCount
@@ -178,7 +184,10 @@ actions:
           - addWatchdogConfig:
               pgpoolAddress: ${@pgpoolnode.address}        
       - cmd[sqldb]: jem service restart
-      - cmd[pgpool]: jem service restart
+      - cmd[pgpool]: |-
+          systemctl reset-failed pgpool-II.service; 
+          jem service restart
+        user: root
       - forEach(nodes.sqldb):
         - addAppNameToConinfo:
             id: ${@i.id}
@@ -218,6 +227,7 @@ actions:
         sed -ci -e "s/^health_check_password.*/health_check_password = '${globals.pgpoolintpass}'/" /etc/pgpool-II/pgpool.conf
         pg_enc -m -f /etc/pgpool-II/pgpool.conf -u pgpool ${globals.pgpoolintpass}
         chown -R postgres:postgres /etc/pgpool-II
+        systemctl reset-failed pgpool-II.service
       user: root
 
   adjustConfigs4PgpoolUser:
