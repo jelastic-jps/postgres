@@ -315,12 +315,12 @@ actions:
   setMaxWalSenders:
     - cmd[sqldb]: |-
         MAX_WAL_SENDERS=$(grep '^MAX_WAL_SENDERS' /usr/local/sbin/jcm | grep -o [0-9]*)
-        if [ "${nodes.sqldb.length}" -ge "${MAX_WAL_SENDERS}" ] ; then
-            sed -ci -e 's/^MAX_WAL_SENDERS.*/MAX_WAL_SENDERS=${nodes.sqldb.length}/' /usr/local/sbin/jcm
+        if [[ "${nodes.sqldb.length}" -ge "${MAX_WAL_SENDERS}" ]] ; then
+            sed -ci -e 's/^[[:space:]]MAX_WAL_SENDERS.*/MAX_WAL_SENDERS=${nodes.sqldb.length}/' /usr/local/sbin/jcm
         fi
         MAX_WAL_SENDERS=$(grep '^max_wal_senders' ${globals.postgresqlConf}|grep -o [0-9]*)
-        if [ "${nodes.sqldb.length}" -ge "${MAX_WAL_SENDERS}" ] ; then
-            sed -ci -e 's/^max_wal_senders.*/max_wal_senders = ${nodes.sqldb.length}/' ${globals.postgresqlConf}
+        if [[ "${nodes.sqldb.length}" -ge "${MAX_WAL_SENDERS}" ]] ; then
+            sed -ci -e 's/^[[:space:]]max_wal_senders.*/max_wal_senders = ${nodes.sqldb.length}/' ${globals.postgresqlConf}
             jem service restart
         fi
       user: root
