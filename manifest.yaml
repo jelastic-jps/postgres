@@ -14,6 +14,7 @@ description:
 categories:
   - apps/clustered-dbs
   - apps/clusters
+  - apps/databases
 
 settings:
   fields:
