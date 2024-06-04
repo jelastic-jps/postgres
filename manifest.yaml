@@ -21,8 +21,6 @@ settings:
       name: nodeType
       type: list    
       values: 
-        - value: postgres11
-          caption: PostgreSQL 11
         - value: postgres12
           caption: PostgreSQL 12
         - value: postgres13
