@@ -235,9 +235,9 @@ actions:
         jem service stop;
         source /etc/jelastic/metainf.conf;
         if [ "$COMPUTE_TYPE_VERSION" -ge "13" ] ; then
-            echo 'wal_keep_size = 2048' >> ${globals.postgresqlConf}
+            sed -ci -e "s|.*wal_keep_size =.*|wal_keep_size = 2048|g" ${globals.postgresqlConf}
         else
-            echo "wal_keep_segments = 256" >> ${globals.postgresqlConf}
+            sed -ci -e "s|.*wal_keep_segments =.*|wal_keep_segments = 256|g" ${globals.postgresqlConf}
         fi
         grep -q "^wal_log_hints" ${globals.postgresqlConf} || echo 'wal_log_hints = on' >> ${globals.postgresqlConf};
         jem service start;
