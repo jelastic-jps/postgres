@@ -2,7 +2,7 @@
   "convertable": false,
   "skipOnEnvInstall": true,
   "isClusterDependency": true,
-  "jps": "https://raw.githubusercontent.com/dimkadt/postgres/v2.0.0/addons/auto-cluster.yaml",
+  "jps": "https://raw.githubusercontent.com/jelastic-jps/postgres/v2.0.0/addons/auto-cluster.yaml",
   "description": "<h3>Primary-Secondary with Scalable Secondaries</h3>Pre-configured PostgreSQL database cluster with primary-secondary replication. New LB and DB nodes are automatically added into the cluster upon scaling.<br><img width='300' height='233' src='https://raw.githubusercontent.com/DmytroZubelevych/postgres/v2.0.0/images/pgpool-postgres-single-region.svg?sanitize=true'>",
   "defaultState": false,
   "nodeGroupData": {
