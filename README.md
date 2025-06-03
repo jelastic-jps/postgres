@@ -21,9 +21,9 @@ Within the package, each database container receives the [vertical scaling](http
 
 In order to get PostgreSQL Database Replication solution instantly deployed, click the **Deploy to Cloud** button below and specify your email address within the opened widget. Then choose one of the [Virtuozzo Public Cloud](https://www.virtuozzo.com/application-platform-partners/) providers (in case you don’t have an account at the appropriate platform, it will be created automatically) and press **Install**.
 
-[![Deploy](images/deploy-to-cloud.png)](https://jelastic.com/install-application/?manifest=https://raw.githubusercontent.com/jelastic-jps/postgres/v2.1.0/manifest.yaml)
+[![Deploy](images/deploy-to-cloud.png)](https://jelastic.com/install-application/?manifest=https://cdn.jsdelivr.net/gh/jelastic-jps/postgres@2.1.0/manifest.yaml)
 
-To install the package manually, log in to the Virtuozzo Application Platform dashboard with your credentials and [import](https://www.virtuozzo.com/application-platform-docs/environment-import/) link to the [**_manifest.yaml_**](https://github.com/jelastic-jps/postgres/blob/master/manifest.yaml) file (alternatively, you can locate this package via [VAP Marketplace](https://www.virtuozzo.com/application-platform-docs/marketplace/), *Clusters* section)
+To install the package manually, log in to the Virtuozzo Application Platform dashboard with your credentials and [import](https://www.virtuozzo.com/application-platform-docs/environment-import/) link to the [**_manifest.yaml_**](https://cdn.jsdelivr.net/gh/jelastic-jps/postgres@2.1.0/manifest.yaml) file (alternatively, you can locate this package via [VAP Marketplace](https://www.virtuozzo.com/application-platform-docs/marketplace/), *Clusters* section)
 
 <p align="left">
 <img src="images/postgresql-replication-installation.png" width="550">
@@ -58,7 +58,7 @@ Database nodes have a built-in management administration panel phpPgAdmin. Use t
 <img src="images/phppgadmin.png" width="600">
 </p> 
 
-If required, the separate node can be installed with more advanced PostgreSQL database management software [pgAdmin4](https://www.pgadmin.org/) via importing [manifest](https://github.com/jelastic-jps/pgadmin/blob/master/manifest.yaml) from VAP collection.
+If required, the separate node can be installed with more advanced PostgreSQL database management software [pgAdmin4](https://www.pgadmin.org/) via importing [manifest](https://cdn.jsdelivr.net/gh/jelastic-jps/pgadmin@2.1.0/manifest.yaml) from VAP collection.
 
 <p align="left">
 <img src="images/pgadmin.png" width="600">
