@@ -21,7 +21,7 @@ Within the package, each database container receives the [vertical scaling](http
 
 In order to get PostgreSQL Database Replication solution instantly deployed, click the **Deploy to Cloud** button below and specify your email address within the opened widget. Then choose one of the [Virtuozzo Public Cloud](https://www.virtuozzo.com/application-platform-partners/) providers (in case you don’t have an account at the appropriate platform, it will be created automatically) and press **Install**.
 
-[![Deploy](images/deploy-to-cloud.png)](https://jelastic.com/install-application/?manifest=https://raw.githubusercontent.com/jelastic-jps/postgres/v2.0.0/manifest.yaml)
+[![Deploy](images/deploy-to-cloud.png)](https://jelastic.com/install-application/?manifest=https://raw.githubusercontent.com/jelastic-jps/postgres/v2.1.0/manifest.yaml)
 
 To install the package manually, log in to the Virtuozzo Application Platform dashboard with your credentials and [import](https://www.virtuozzo.com/application-platform-docs/environment-import/) link to the [**_manifest.yaml_**](https://github.com/jelastic-jps/postgres/blob/master/manifest.yaml) file (alternatively, you can locate this package via [VAP Marketplace](https://www.virtuozzo.com/application-platform-docs/marketplace/), *Clusters* section)
 

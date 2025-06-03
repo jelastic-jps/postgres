@@ -1,10 +1,14 @@
 type: update
 id: postgres-master-slave-auto-cluster
-baseUrl: https://raw.githubusercontent.com/jelastic-jps/postgres/v2.0.0
+baseUrl: https://raw.githubusercontent.com/jelastic-jps/postgres/v2.1.0
 logo: /images/postgres-70x70.png
 name: PostgreSQL Primary-Secondary Auto-Cluster
 
-targetNodes: none
+permanent: true
+
+targetNodes:
+  nodeGroup: ${settings.nodeGroup:sqldb}
+  
 nodeGroupAlias:
   ${settings.nodeGroup}: sqldb
   
@@ -13,7 +17,8 @@ onInstall: init
 globals: 
   pgpoolintpass: ${settings.pgpoolintpass:[fn.password]}
   postgresqlConf: '/var/lib/pgsql/data/postgresql.conf'
-  
+  REPLICA_PSWD: ${fn.password(20)}
+
 onBeforeRemoveNode[sqldb]:
   if (nodes.sqldb.length == 1):
     install:
@@ -244,7 +249,7 @@ actions:
       user: root
 
   initPrimary:
-    - cmd[${nodes.sqldb.master.id}]: jcm initPrimary &>> /var/log/run.log
+    - cmd[${nodes.sqldb.master.id}]: jcm initPrimary ${globals.REPLICA_PSWD} &>> /var/log/run.log
     - getPswd
 
   getPswd:
@@ -259,7 +264,10 @@ actions:
         sudo jem service reload
     - cmd[${this.id}]: |-
         jcm setPswd ${globals.pswd}
-        jcm initSecondary &>> /var/log/run.log
+        jcm initSecondary ${globals.REPLICA_PSWD} &>> /var/log/run.log
+    - cmd[${nodes.sqldb.master.id}]: |-
+        jcm updateReplicaHost ${this.ip} &>> /var/log/run.log
+        sudo jem service reload
 
   getNodes:
       - script: |
