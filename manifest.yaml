@@ -1,20 +1,20 @@
 type: install
 version: 1.7
 id: postgres-master-slave
-baseUrl: https://raw.githubusercontent.com/jelastic-jps/postgres/v2.1.0
-homepage: https://www.virtuozzo.com/application-platform-docs/postgresql-database-replication
-logo: /images/postgres-70x70.png
 name: PostgreSQL Primary-Secondary Cluster
+categories:
+  - apps/clustered-dbs
+  - apps/clusters
+  - apps/databases
+logo: /images/postgres-70x70.png
+homepage: https://www.virtuozzo.com/application-platform-docs/postgresql-database-replication
 description:
   text: |
     PostgreSQL Primary-Secondary Cluster for improving data availability with asynchronous replication. 
     PostgreSQL is a powerful, open source object-relational database system with over 30 years of active development that has earned it a strong reputation for reliability, feature robustness, and performance.
   short: PostgreSQL Primary-Secondary Cluster with asynchronous replication.
 
-categories:
-  - apps/clustered-dbs
-  - apps/clusters
-  - apps/databases
+baseUrl: https://cdn.jsdelivr.net/gh/jelastic-jps/postgres@2.1.0
 
 settings:
   fields:
@@ -38,7 +38,7 @@ settings:
     - type: toggle
       caption: Pgpool-II enabled
       name: is_pgpool2
-      tooltip: <h3 align=center>Pgpool-II Load Balancer</h3>Scalable and Highly Available load balancer layer to distribute requests and manage PostgreSQL replication topology. New LB and DB nodes are automatically added into the cluster upon scaling.<br><img width='330' height='280' src='https://raw.githubusercontent.com/jelastic-jps/postgres/v2.1.0/images/pgpool-postgres-single-region.svg?sanitize=true'>
+      tooltip: <h3 align=center>Pgpool-II Load Balancer</h3>Scalable and Highly Available load balancer layer to distribute requests and manage PostgreSQL replication topology. New LB and DB nodes are automatically added into the cluster upon scaling.<br><img width='330' height='280' src='https://cdn.jsdelivr.net/gh/jelastic-jps/postgres@2.1.0/images/pgpool-postgres-single-region.svg?sanitize=true'>
       value: true
 
 nodes:
