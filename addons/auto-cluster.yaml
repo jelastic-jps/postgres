@@ -345,3 +345,4 @@ startPage: ${nodes.sqldb.master.url}
 success:
   email: ${globals.successPath}
   text: ${globals.successPath}
+
