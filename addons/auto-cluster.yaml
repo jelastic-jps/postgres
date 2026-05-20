@@ -17,6 +17,7 @@ onInstall: init
 globals: 
   pgpoolintpass: ${settings.pgpoolintpass:[fn.password]}
   postgresqlConf: '/var/lib/pgsql/data/postgresql.conf'
+  REPLICA_USER: replication
   REPLICA_PSWD: ${fn.password(20)}
 
 onBeforeRemoveNode[sqldb]:
@@ -170,8 +171,7 @@ actions:
         - preparePgpoolNodes
     - copyPcpassFile
     - if ('${settings.is_pgpool2}' == 'true'):
-      - if (!${settings.clone:false}):
-        - setReplicaEnvVars
+      - setReplicaEnvVars
       - forEach(nodes.sqldb):
         - addPgNodesToPgPool:
             pgaddress: ${@i.address}
@@ -217,6 +217,7 @@ actions:
   setReplicaEnvVars:
     - env.control.AddContainerEnvVars[pgpool]:
         vars:
+          REPLICA_USER: ${globals.REPLICA_USER}
           REPLICA_PSWD: ${globals.REPLICA_PSWD}
 
   copyPcpassFile:
