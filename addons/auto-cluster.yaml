@@ -170,6 +170,8 @@ actions:
         - preparePgpoolNodes
     - copyPcpassFile
     - if ('${settings.is_pgpool2}' == 'true'):
+      - if (!${settings.clone:false}):
+        - setReplicaEnvVars
       - forEach(nodes.sqldb):
         - addPgNodesToPgPool:
             pgaddress: ${@i.address}
@@ -211,6 +213,11 @@ actions:
       - cmd[pgpool]: |-
           ssh-keygen -R ${@pgnode.address}
           ssh-keyscan ${@pgnode.address} 2>&1 1>> ~/.ssh/known_hosts
+
+  setReplicaEnvVars:
+    - env.control.AddContainerEnvVars[pgpool]:
+        vars:
+          REPLICA_PSWD: ${globals.REPLICA_PSWD}
 
   copyPcpassFile:
     - cmd[${nodes.sqldb.master.id}]: cat /var/lib/pgsql/.pgpass
