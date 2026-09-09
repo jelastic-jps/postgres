@@ -30,7 +30,9 @@ settings:
           caption: PostgreSQL 16
         - value: postgres17
           caption: PostgreSQL 17
-      default: postgres17
+        - value: postgres18
+          caption: PostgreSQL 18
+      default: postgres18
     - type: toggle
       caption: Pgpool-II enabled
       name: is_pgpool2
